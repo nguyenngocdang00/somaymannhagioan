@@ -202,11 +202,18 @@
         return num.toString().padStart(4, '0');
     }
 
-    // Hàm bắn pháo hoa
+    // Hàm bắn pháo hoa lên trên cùng màn hình
     function fireFireworks() {
         const duration = 3 * 1000;
         const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+        
+        // Cấu hình zIndex cực cao (ví dụ: 9999) để đè lên mọi thành phần khác
+        const defaults = { 
+            startVelocity: 30, 
+            spread: 360, 
+            ticks: 60, 
+            zIndex: 9999 // Đã sửa: Pháo hoa sẽ hiện trên cùng
+        };
 
         function randomInRange(min, max) {
             return Math.random() * (max - min) + min;
@@ -220,9 +227,16 @@
             }
 
             const particleCount = 50 * (timeLeft / duration);
-            // Bắn từ hai bên góc màn hình
-            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            
+            // Bắn pháo hoa giấy từ hai góc dưới màn hình lên trên
+            confetti(Object.assign({}, defaults, { 
+                particleCount, 
+                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } 
+            }));
+            confetti(Object.assign({}, defaults, { 
+                particleCount, 
+                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } 
+            }));
         }, 250);
     }
 
