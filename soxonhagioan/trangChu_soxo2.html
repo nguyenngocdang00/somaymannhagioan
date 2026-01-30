@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Số May Mắn - Nhà Gioan</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --tet-red: #d32f2f;
@@ -20,7 +21,7 @@
             font-family: 'Arial', sans-serif;
             background: url('https://poster.vn/wp-content/uploads/2025/11/background-tet-2026-dep-nhat1.png') no-repeat center center fixed;
             background-size: cover;
-            padding: 10px; /* Thêm padding để không bị dính sát mép trên mobile */
+            padding: 10px;
         }
 
         .container {
@@ -31,24 +32,25 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             display: flex;
-            flex-direction: row; /* Mặc định hàng ngang cho Laptop */
+            flex-direction: row;
             flex-wrap: wrap; 
             gap: 20px;
             border: 5px solid var(--tet-gold);
             box-sizing: border-box;
+            position: relative;
+            z-index: 1;
         }
 
         .header-title {
             width: 100%;
             text-align: center;
             color: var(--tet-red);
-            font-size: clamp(1.2rem, 5vw, 2rem); /* Tự động co giãn kích thước chữ */
+            font-size: clamp(1.2rem, 5vw, 2rem);
             text-transform: uppercase;
             margin-bottom: 10px;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
 
-        /* Panel Vòng quay */
         .left-panel {
             flex: 1;
             min-width: 300px;
@@ -59,7 +61,7 @@
         }
 
         .machine-outer {
-            width: clamp(200px, 70vw, 320px); /* Co giãn theo màn hình */
+            width: clamp(200px, 70vw, 320px);
             height: clamp(200px, 70vw, 320px);
             border-radius: 50%;
             border: 10px solid var(--tet-gold);
@@ -112,7 +114,6 @@
         .btn-spin:active { transform: translateY(3px); box-shadow: none; }
         .btn-spin:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
 
-        /* Panel Kết quả */
         .right-panel {
             flex: 1.5;
             min-width: 300px;
@@ -137,7 +138,7 @@
 
         .result-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); /* Tự động chia cột */
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
             gap: 8px;
             overflow-y: auto;
             padding-right: 5px;
@@ -160,22 +161,9 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* Responsive cho Mobile */
         @media (max-width: 768px) {
-            .container {
-                flex-direction: column; /* Xếp dọc trên điện thoại */
-                padding: 15px;
-            }
-            .left-panel {
-                min-width: unset;
-            }
-            .right-panel {
-                min-width: unset;
-                max-height: 350px; /* Giảm chiều cao bảng kết quả trên mobile */
-            }
-            .header-title {
-                margin-bottom: 5px;
-            }
+            .container { flex-direction: column; padding: 15px; }
+            .right-panel { max-height: 350px; }
         }
     </style>
 </head>
@@ -195,15 +183,13 @@
     <div class="right-panel">
         <div class="result-title">
             <span>Danh sách trúng thưởng</span>
-            <span id="countText">Đã trúng: 0/300</span>
+            <span id="countText">Đã trúng: 0/136</span>
         </div>
-        <div class="result-grid" id="resultBoard">
-            </div>
+        <div class="result-grid" id="resultBoard"></div>
     </div>
 </div>
 
 <script>
-    // Logic giữ nguyên như file gốc của bạn
     const min = 0;
     const max = 3999;
     const winningNumbers = new Set();
@@ -214,6 +200,30 @@
 
     function formatNumber(num) {
         return num.toString().padStart(4, '0');
+    }
+
+    // Hàm bắn pháo hoa
+    function fireFireworks() {
+        const duration = 3 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        const interval = setInterval(function() {
+            const timeLeft = animationEnd - Date.now();
+
+            if (timeLeft <= 0) {
+                return clearInterval(interval);
+            }
+
+            const particleCount = 50 * (timeLeft / duration);
+            // Bắn từ hai bên góc màn hình
+            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+        }, 250);
     }
 
     function startSpin() {
@@ -248,6 +258,9 @@
         
         display.innerText = formatted;
         display.style.color = "#ffd700";
+
+        // Kích hoạt pháo hoa khi ra số trúng
+        fireFireworks();
 
         const item = document.createElement('div');
         item.className = 'result-item';
