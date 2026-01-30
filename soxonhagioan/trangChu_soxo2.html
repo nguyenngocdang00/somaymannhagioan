@@ -6,7 +6,6 @@
     <title>Số May Mắn - Nhà Gioan</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        /* Giữ nguyên các root và body style cũ */
         :root {
             --tet-red: #d32f2f;
             --tet-gold: #ffd700;
@@ -23,10 +22,9 @@
             background: url('https://poster.vn/wp-content/uploads/2025/11/background-tet-2026-dep-nhat1.png') no-repeat center center fixed;
             background-size: cover;
             padding: 10px;
-            touch-action: manipulation; /* Tối ưu chạm cho mobile */
+            touch-action: manipulation;
         }
 
-        /* Container và các Panel giữ nguyên tính Responsive */
         .container {
             background: var(--glass);
             width: 100%;
@@ -51,6 +49,16 @@
             font-size: clamp(1.2rem, 5vw, 2rem);
             text-transform: uppercase;
             margin-bottom: 10px;
+        }
+
+        /* --- CHỈNH SỬA TẠI ĐÂY ĐỂ CĂN GIỮA --- */
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;    /* Căn giữa các phần tử con theo chiều ngang */
+            justify-content: center; /* Căn giữa các phần tử con theo chiều dọc */
         }
 
         .machine-outer {
@@ -78,7 +86,7 @@
         }
 
         .btn-spin {
-            margin-top: 20px;
+            margin-top: 25px; /* Tăng khoảng cách với vòng quay */
             background: var(--tet-red);
             color: white;
             border: none;
@@ -86,8 +94,32 @@
             font-size: 1.1rem;
             font-weight: bold;
             border-radius: 50px;
-            width: 80%;
-            max-width: 250px;
+            width: 220px;     /* Đặt chiều rộng cố định để nút cân đối */
+            cursor: pointer;
+            box-shadow: 0 4px 0 #8b0000;
+            transition: all 0.2s;
+        }
+
+        .btn-spin:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #8b0000;
+        }
+
+        .btn-spin:disabled {
+            background: #ccc;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        /* ------------------------------------ */
+
+        .right-panel {
+            flex: 1.5;
+            min-width: 300px;
+            background: rgba(255,255,255,0.7);
+            padding: 15px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
         }
 
         .result-grid {
@@ -108,10 +140,9 @@
             font-weight: bold;
         }
 
-        /* TỐI ƯU BỘ ĐIỀU KHIỂN ÂM THANH CHO MOBILE */
         .audio-controls {
             position: fixed;
-            top: 15px; /* Chuyển lên trên để tránh bị vướng bàn phím hoặc thanh điều hướng mobile */
+            top: 15px;
             right: 15px;
             z-index: 10000;
             display: flex;
@@ -138,13 +169,12 @@
             height: 10px;
             cursor: pointer;
             accent-color: var(--tet-red);
-            -webkit-appearance: none; /* Reset cho Safari/Chrome */
+            -webkit-appearance: none;
             background: #ddd;
             border-radius: 5px;
             outline: none;
         }
 
-        /* Tăng kích thước nút kéo để dễ chạm bằng ngón tay trên mobile */
         #volume-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 20px;
@@ -154,17 +184,9 @@
             cursor: pointer;
         }
 
-        #volume-slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: var(--tet-red);
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
         @media (max-width: 768px) {
             .container { flex-direction: column; }
-            .audio-controls { top: auto; bottom: 20px; right: 20px; } /* Mobile thì đưa xuống dưới lại */
+            .audio-controls { top: auto; bottom: 20px; right: 20px; }
         }
     </style>
 </head>
@@ -203,10 +225,8 @@
     const volumeSlider = document.getElementById('volume-slider');
     let isMusicPlaying = false;
 
-    // Cài đặt âm lượng ban đầu
     bgMusic.volume = 0.5;
 
-    // Lắng nghe sự kiện thay đổi âm lượng (Hỗ trợ cả click và touch)
     volumeSlider.addEventListener('input', function() {
         const val = this.value;
         bgMusic.volume = val;
@@ -235,7 +255,6 @@
         startSpin();
     }
 
-    // Logic quay số và pháo hoa
     const winningNumbers = new Set();
     function formatNumber(num) { return num.toString().padStart(4, '0'); }
 
@@ -286,4 +305,3 @@
 </script>
 </body>
 </html>
-
