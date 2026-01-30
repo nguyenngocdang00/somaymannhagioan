@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Số May Mắn - Nhà Gioan</title>
+    <style>
+        :root {
+            --tet-red: #d32f2f;
+            --tet-gold: #ffd700;
+            --glass: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            background: url('https://poster.vn/wp-content/uploads/2025/11/background-tet-2026-dep-nhat1.png') no-repeat center center fixed;
+            background-size: cover;
+            padding: 10px; /* Thêm padding để không bị dính sát mép trên mobile */
+        }
+
+        .container {
+            background: var(--glass);
+            width: 100%;
+            max-width: 1100px;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: row; /* Mặc định hàng ngang cho Laptop */
+            flex-wrap: wrap; 
+            gap: 20px;
+            border: 5px solid var(--tet-gold);
+            box-sizing: border-box;
+        }
+
+        .header-title {
+            width: 100%;
+            text-align: center;
+            color: var(--tet-red);
+            font-size: clamp(1.2rem, 5vw, 2rem); /* Tự động co giãn kích thước chữ */
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Panel Vòng quay */
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .machine-outer {
+            width: clamp(200px, 70vw, 320px); /* Co giãn theo màn hình */
+            height: clamp(200px, 70vw, 320px);
+            border-radius: 50%;
+            border: 10px solid var(--tet-gold);
+            background: white;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.2);
+            background-image: radial-gradient(circle, #fff 0%, #fff9e6 100%);
+        }
+
+        .logo-doan {
+            width: 30%;
+            height: auto;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        #display-number {
+            background: #333;
+            color: #fff;
+            font-size: clamp(2rem, 10vw, 4rem);
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 10px;
+            letter-spacing: 3px;
+            border: 3px solid #666;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .btn-spin {
+            margin-top: 20px;
+            background: var(--tet-red);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 0 #8b0000;
+            width: 80%;
+            max-width: 250px;
+        }
+
+        .btn-spin:active { transform: translateY(3px); box-shadow: none; }
+        .btn-spin:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+        /* Panel Kết quả */
+        .right-panel {
+            flex: 1.5;
+            min-width: 300px;
+            background: rgba(255,255,255,0.7);
+            padding: 15px;
+            border-radius: 15px;
+            max-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .result-title {
+            color: #333;
+            border-bottom: 2px solid var(--tet-red);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); /* Tự động chia cột */
+            gap: 8px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .result-item {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: center;
+            border-radius: 5px;
+            font-weight: bold;
+            color: var(--tet-red);
+            font-size: 0.9rem;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Responsive cho Mobile */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column; /* Xếp dọc trên điện thoại */
+                padding: 15px;
+            }
+            .left-panel {
+                min-width: unset;
+            }
+            .right-panel {
+                min-width: unset;
+                max-height: 350px; /* Giảm chiều cao bảng kết quả trên mobile */
+            }
+            .header-title {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-title">🧧 Quay Số May Mắn Chúc Mừng Năm Mới nhà Gioan 🧧</div>
+
+    <div class="left-panel">
+        <div class="machine-outer">
+            <img src="https://nguyenngocdang00.github.io/somaymannhagioan/soxonhagioan/loGoDoan.png" alt="Logo Đoàn" class="logo-doan">
+            <div id="display-number">0000</div>
+        </div>
+        <button id="spinBtn" class="btn-spin" onclick="startSpin()">BẮT ĐẦU QUAY</button>
+    </div>
+
+    <div class="right-panel">
+        <div class="result-title">
+            <span>Danh sách trúng thưởng</span>
+            <span id="countText">Đã trúng: 0/300</span>
+        </div>
+        <div class="result-grid" id="resultBoard">
+            </div>
+    </div>
+</div>
+
+<script>
+    // Logic giữ nguyên như file gốc của bạn
+    const min = 0;
+    const max = 3999;
+    const winningNumbers = new Set();
+    const spinBtn = document.getElementById('spinBtn');
+    const display = document.getElementById('display-number');
+    const resultBoard = document.getElementById('resultBoard');
+    const countText = document.getElementById('countText');
+
+    function formatNumber(num) {
+        return num.toString().padStart(4, '0');
+    }
+
+    function startSpin() {
+        if (winningNumbers.size >= 136) {
+            alert("Đã đủ 136 giải thưởng theo quy định!");
+            return;
+        }
+
+        spinBtn.disabled = true;
+        let duration = 2000; 
+        let startTime = Date.now();
+
+        const timer = setInterval(() => {
+            let randomTemp = Math.floor(Math.random() * (max - min + 1)) + min;
+            display.innerText = formatNumber(randomTemp);
+            
+            if (Date.now() - startTime >= duration) {
+                clearInterval(timer);
+                determineWinner();
+            }
+        }, 50);
+    }
+
+    function determineWinner() {
+        let finalNumber;
+        do {
+            finalNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+        } while (winningNumbers.has(finalNumber));
+
+        winningNumbers.add(finalNumber);
+        const formatted = formatNumber(finalNumber);
+        
+        display.innerText = formatted;
+        display.style.color = "#ffd700";
+
+        const item = document.createElement('div');
+        item.className = 'result-item';
+        item.innerText = formatted;
+        resultBoard.prepend(item);
+
+        countText.innerText = `Đã trúng: ${winningNumbers.size}/136`;
+
+        setTimeout(() => {
+            display.style.color = "#fff";
+            spinBtn.disabled = false;
+        }, 1000);
+    }
+</script>
+
+</body>
+</html>
