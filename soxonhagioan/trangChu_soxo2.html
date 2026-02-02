@@ -198,10 +198,71 @@
             .container { flex-direction: column; }
             .audio-controls { top: auto; bottom: 20px; right: 20px; }
         }
+		/* THIẾT KẾ BỘ ĐẾM TINH TẾ HƠN */
+.visitor-counter {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: var(--glass);
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 2px solid var(--tet-gold);
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: var(--tet-red);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    backdrop-filter: blur(5px); /* Làm mờ hậu cảnh cho hiệu ứng kính */
+}
+
+.visitor-counter i {
+    font-size: 1.1rem;
+}
+
+.counter-label {
+    opacity: 0.8;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#visit-count {
+    font-size: 1.1rem;
+    color: #b71c1c;
+}
+
+/* TỐI ƯU CHO MOBILE */
+@media (max-width: 768px) {
+    .visitor-counter {
+        bottom: auto;
+        top: 15px;
+        left: 15px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    #visit-count {
+        font-size: 0.9rem;
+    }
+    
+    /* Đẩy điều khiển nhạc xuống dưới để không bị chồng lấn trên mobile */
+    .audio-controls {
+        top: auto;
+        bottom: 20px;
+        right: 15px;
+    }
+}
     </style>
 </head>
 <body>
-
+<div class="visitor-counter">
+    <span class="counter-label">lượt truy cập</span>
+    <span id="visit-count">0000</span>
+</div>
 <audio id="bgMusic" loop preload="auto">
     <source src="https://nguyenngocdang00.github.io/somaymannhagioan/soxonhagioan/Happy_New_Year.mp3" type="audio/mpeg">
 </audio>
@@ -223,12 +284,52 @@
     <div class="right-panel">
         <div style="display:flex; justify-content: space-between; font-weight:bold; margin-bottom:10px;">
             <span>Danh sách trúng thưởng</span>
-            <span id="countText">Đã trúng: 0/136</span>
+            <span id="countText">Đã trúng: 0/300</span>
         </div>
         <div class="result-grid" id="resultBoard"></div>
     </div>
 </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+
+    const encodedURL = "aHR0cHM6Ly9zb3hvbmhhZ2lvYW4tZGVmYXVsdC1ydGRiLmFzaWEtc291dGhlYXN0MS5maXJlYmFzZWRhdGFiYXNlLmFwcA==";
+    const firebaseConfig = {
+        databaseURL: atob(encodedURL)
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const visitRef = ref(db, 'visitCount');
+
+    // --- ĐOẠN CODE CHỐNG SPAM ---
+    // Kiểm tra xem trình duyệt này đã được tính lượt truy cập chưa
+    const hasVisited = localStorage.getItem('hasVisited_Lottery');
+
+    if (!hasVisited) {
+        // Nếu chưa ghé thăm, tiến hành tăng lượt truy cập trên Firebase
+        runTransaction(visitRef, (currentValue) => {
+            return (currentValue || 0) + 1;
+        }).then(() => {
+            // Sau khi tăng thành công, lưu đánh dấu vào LocalStorage để lần sau không tăng nữa
+            localStorage.setItem('hasVisited_Lottery', 'true');
+        }).catch((error) => {
+            console.error("Lỗi khi tăng lượt truy cập:", error);
+        });
+    } else {
+        console.log("Người dùng cũ, không tăng lượt truy cập để tránh spam.");
+    }
+    // ----------------------------
+
+    // Cập nhật số hiển thị lên màn hình (vẫn luôn chạy để người dùng thấy tổng số hiện tại)
+    onValue(visitRef, (snapshot) => {
+        const count = snapshot.val();
+        if (count !== null) {
+            document.getElementById('visit-count').innerText = count.toLocaleString();
+        }
+    });
+</script>
 <script>
     const bgMusic = document.getElementById('bgMusic');
     const musicToggle = document.getElementById('music-toggle');
@@ -315,7 +416,6 @@
 </script>
 </body>
 </html>
-
 
 
 
