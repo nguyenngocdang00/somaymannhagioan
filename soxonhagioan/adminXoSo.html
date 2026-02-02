@@ -8,11 +8,14 @@
     <meta name="description" content="Chương trình quay số may mắn chúc mừng năm mới 2026 dành riêng cho gia đình nhà Gioan.">
     
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://your-link.com/"> <meta property="og:title" content="🧧 Bảo Mật Quản Trị Số May Mắn - Nhà Gioan 🧧">
+    <meta property="og:url" content="https://your-link.com/"> 
+    <meta property="og:title" content="🧧 Bảo Mật Quản Trị Số May Mắn - Nhà Gioan 🧧">
     <meta property="og:description" content="Cùng thử vận may đầu năm với chương trình quay số hấp dẫn. Chúc mừng năm mới 2026!">
-    <meta property="og:image" content="https://nguyenngocdang00.github.io/somaymannhagioan/soxonhagioan/loGoDoan.png"> <meta property="twitter:card" content="summary_large_image">
+    <meta property="og:image" content="https://nguyenngocdang00.github.io/somaymannhagioan/soxonhagioan/loGoDoan.png"> 
+    <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:title" content="🧧 Bảo Mật Quản Trị Số May Mắn - Nhà Gioan 🧧">
     <meta property="twitter:description" content="Cùng thử vận may đầu năm 2026!">
+    
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #d32f2f; display: flex; justify-content: center; align-items: center; z-index: 9999; }
@@ -21,13 +24,18 @@
         
         .admin-box { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: none; }
         h2 { color: #d32f2f; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .prize-group { margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 8px; border-left: 4px solid #d32f2f; }
+        .prize-group { margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 8px; border-left: 4px solid #d32f2f; position: relative; }
         label { font-weight: bold; display: block; margin-bottom: 5px; color: #444; }
-        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        .status-info { font-size: 0.85rem; color: #666; margin-top: 5px; }
+        
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
+        textarea { height: 150px; resize: vertical; } /* Ô nhập rộng cho 100 giải */
+        
+        .count-badge { float: right; background: #666; color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; }
+        .status-info { font-size: 0.85rem; color: #666; margin-top: 5px; word-break: break-all; }
+        
         .btn-update { width: 100%; padding: 15px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 1rem; }
         .btn-logout { background: #666; margin-top: 10px; }
-        .timer-info { text-align: center; color: #d32f2f; font-weight: bold; margin-bottom: 10px; }
+        .timer-info { text-align: center; color: #d32f2f; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -53,43 +61,54 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-
     const encodedURL = "aHR0cHM6Ly9zb3hvbmhhZ2lvYW4tZGVmYXVsdC1ydGRiLmFzaWEtc291dGhlYXN0MS5maXJlYmFzZWRhdGFiYXNlLmFwcA==";
     const firebaseConfig = { databaseURL: atob(encodedURL) };
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-
+    // Mật khẩu "gioan2026" mã hóa 2 lớp
     const ENCODED_ADMIN_KEY = "WjJsdllXNHlNREky"; 
 
-    let sessionTimeout;
     let timeLeft = 15 * 60; 
-
     const config = [
-        { key: 'db', name: 'Giải Đặc Biệt' },
-        { key: 'g1', name: 'Giải Nhất' },
-        { key: 'g2', name: 'Giải Nhì' },
-        { key: 'g3', name: 'Giải Ba' },
-        { key: 'g4', name: 'Giải Tư' },
-        { key: 'g5', name: 'Giải Năm' },
-        { key: 'g6', name: 'Giải Sáu' },
-        { key: 'gkk', name: 'Giải Khuyến Khích' }
+        { key: 'db', name: 'Giải Đặc Biệt', target: 1 },
+        { key: 'g1', name: 'Giải Nhất', target: 2 },
+        { key: 'g2', name: 'Giải Nhì', target: 3 },
+        { key: 'g3', name: 'Giải Ba', target: 10 },
+        { key: 'g4', name: 'Giải Tư', target: 30 },
+        { key: 'g5', name: 'Giải Năm', target: 40 },
+        { key: 'g6', name: 'Giải Sáu', target: 50 },
+        { key: 'gkk', name: 'Giải Khuyến Khích', target: 100 }
     ];
 
-    // Tạo form nhập liệu
     const container = document.getElementById('inputControls');
     config.forEach(p => {
+        // Nếu là giải khuyến khích thì dùng textarea, các giải khác dùng input
+        const inputTag = p.key === 'gkk' 
+            ? `<textarea id="in_${p.key}" placeholder="Dán 100 số vào đây (cách nhau bởi dấu phẩy hoặc xuống dòng)" oninput="updateBadge('${p.key}')"></textarea>`
+            : `<input type="text" id="in_${p.key}" placeholder="Ví dụ: 1234, 5678" oninput="updateBadge('${p.key}')">`;
+
         container.innerHTML += `
             <div class="prize-group">
-                <label>${p.name}:</label>
-                <input type="text" id="in_${p.key}" placeholder="Các số cách nhau bằng dấu phẩy">
+                <label>${p.name}: <span class="count-badge" id="badge_${p.key}">0/${p.target}</span></label>
+                ${inputTag}
                 <div class="status-info" id="status_${p.key}">Đang tải...</div>
             </div>`;
     });
 
+    window.updateBadge = function(key) {
+        const val = document.getElementById(`in_${key}`).value;
+        // Tách số theo dấu phẩy, khoảng trắng hoặc xuống dòng
+        const nums = val ? val.split(/[\s,\n]+/).filter(s => s.trim() !== "") : [];
+        const target = config.find(c => c.key === key).target;
+        const badge = document.getElementById(`badge_${key}`);
+        
+        badge.innerText = `${nums.length}/${target}`;
+        badge.style.background = nums.length === target ? "#2e7d32" : (nums.length > target ? "#d32f2f" : "#666");
+    };
+
     window.checkLogin = function() {
         const inputPass = document.getElementById('adminPassword').value;
-        // Giải mã mật khẩu 2 lần để so khớp
         const decodedKey = atob(atob(ENCODED_ADMIN_KEY)); 
 
         if (inputPass === decodedKey) {
@@ -112,7 +131,7 @@
 
             if (timeLeft <= 0) {
                 clearInterval(interval);
-                alert("⏰ Hết thời gian phiên làm việc! Vui lòng đăng nhập lại.");
+                alert("⏰ Hết thời gian phiên làm việc! Hệ thống tự động thoát.");
                 logout();
             }
         }, 1000);
@@ -132,6 +151,7 @@
                     const valString = Array.isArray(prizeData) ? prizeData.join(', ') : (prizeData ? Object.values(prizeData).join(', ') : '');
                     document.getElementById(`in_${p.key}`).value = valString;
                     document.getElementById(`status_${p.key}`).innerHTML = `✅ Hiện tại: <b>${valString || 'Trống'}</b>`;
+                    updateBadge(p.key);
                 });
             }
         }, { onlyOnce: true });
@@ -144,7 +164,8 @@
 
         for (const p of config) {
             const val = document.getElementById(`in_${p.key}`).value;
-            const nums = val ? val.split(',').map(s => s.trim()).filter(s => s !== "") : [];
+            // Xử lý linh hoạt dấu phẩy và xuống dòng
+            const nums = val ? val.split(/[\s,\n]+/).map(s => s.trim()).filter(s => s !== "") : [];
             
             nums.forEach(n => {
                 if (allNums.includes(n)) dupes.push(n);
@@ -158,9 +179,14 @@
             return;
         }
 
+        const gkkCount = dataToUpload['gkk'].length;
+        if (gkkCount !== 100 && gkkCount > 0) {
+            if(!confirm(`⚠️ Giải Khuyến Khích mới có ${gkkCount}/100 số. Bạn vẫn muốn lưu?`)) return;
+        }
+
         set(ref(db, 'lottery_results'), dataToUpload)
             .then(() => alert("🚀 Đã cập nhật dữ liệu thành công!"))
-            .catch(err => alert("❌ Lỗi lưu trữ: " + err.message));
+            .catch(err => alert("❌ Lỗi: " + err.message));
     };
 </script>
 </body>
