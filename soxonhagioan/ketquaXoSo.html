@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết Quả Xổ Số May Mắn</title>
+    <style>
+        :root { --primary: #d32f2f; --gold: #ffc107; --bg: #f5f5f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 10px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--primary); font-size: 1.5rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        th { background: var(--primary); color: white; }
+        .prize-name { font-weight: bold; background: #fff3f3; color: var(--primary); width: 30%; }
+        .prize-numbers { font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; color: #333; }
+        .db-highlight { color: red; font-size: 1.4rem; }
+        .check-box { background: #fff9c4; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; gap: 10px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .result-msg { text-align: center; margin-top: 10px; font-weight: bold; }
+    .header-title {
+            text-align: center; color: var(--primary); font-size: 1.5rem;
+        }
+	</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🏆 KẾT QUẢ QUAY SỐ HÔM NAY</h1>
+	<h3 class="header-title">🧧 Quay Số May Mắn Chúc Mừng Năm Mới nhà Gioan 🧧</h3>
+    <div class="check-box">
+        <input type="text" id="userTicket" placeholder="Nhập số vé của bạn...">
+        <button onclick="checkWinner()">DÒ SỐ</button>
+    </div>
+    <div id="checkMessage" class="result-msg"></div>
+
+    <table>
+        <thead>
+            <tr><th>Giải</th><th>Số Trúng Thưởng</th></tr>
+        </thead>
+        <tbody id="viewTable">
+            <tr><td colspan="2">Đang tải dữ liệu...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const encodedURL = "aHR0cHM6Ly9zb3hvbmhhZ2lvYW4tZGVmYXVsdC1ydGRiLmFzaWEtc291dGhlYXN0MS5maXJlYmFzZWRhdGFiYXNlLmFwcA==";
+    const firebaseConfig = { databaseURL: atob(encodedURL) };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const config = [
+        { key: 'db', name: 'Giải Đặc Biệt' },
+        { key: 'g1', name: 'Giải Nhất' },
+        { key: 'g2', name: 'Giải Nhì' },
+        { key: 'g3', name: 'Giải Ba' },
+        { key: 'g4', name: 'Giải Tư' },
+        { key: 'g5', name: 'Giải Năm' },
+        { key: 'g6', name: 'Giải Sáu' },
+        { key: 'gkk', name: 'Giải Khuyến Khích' }
+    ];
+
+    let currentResults = {};
+
+    // Lắng nghe dữ liệu từ node 'lottery_results'
+    onValue(ref(db, 'lottery_results'), (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            console.log("Chưa có dữ liệu trên Firebase.");
+            return;
+        }
+        currentResults = data;
+        
+        const tbody = document.getElementById('viewTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        config.forEach(p => {
+            let nums = '---';
+            const prizeData = data[p.key];
+
+            // Kiểm tra nếu dữ liệu là mảng hoặc đối tượng danh sách
+            if (Array.isArray(prizeData)) {
+                nums = prizeData.filter(n => n !== null).join(' - ');
+            } else if (typeof prizeData === 'object' && prizeData !== null) {
+                nums = Object.values(prizeData).join(' - ');
+            } else if (prizeData) {
+                nums = prizeData;
+            }
+
+            const isDB = p.key === 'db' ? 'db-highlight' : '';
+            tbody.innerHTML += `
+                <tr>
+                    <td class="prize-name">${p.name}</td>
+                    <td class="prize-numbers ${isDB}">${nums}</td>
+                </tr>`;
+        });
+    });
+
+    // Hàm dò số trúng thưởng
+    window.checkWinner = function() {
+        const ticket = document.getElementById('userTicket').value.trim();
+        const msg = document.getElementById('checkMessage');
+        if (!ticket || !msg) return;
+
+        let won = null;
+        for (const p of config) {
+            const results = currentResults[p.key];
+            let checkArray = [];
+            
+            if (Array.isArray(results)) checkArray = results;
+            else if (typeof results === 'object' && results !== null) checkArray = Object.values(results);
+
+            if (checkArray.some(n => n && ticket.endsWith(n.toString()))) {
+                won = p.name;
+                break;
+            }
+        }
+
+        if (won) {
+            msg.innerHTML = `<span style="color: green">🎉 Chúc mừng! Bạn trúng ${won}!</span>`;
+        } else {
+            msg.innerHTML = `<span style="color: red">😢 Chúc bạn may mắn lần sau!</span>`;
+        }
+    };
+</script>
+</body>
+</html>

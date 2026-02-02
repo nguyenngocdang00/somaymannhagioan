@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Trị Kết Quả Xổ Số</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
+        .admin-box { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h2 { color: #d32f2f; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .prize-group { margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 8px; border-left: 4px solid #d32f2f; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; color: #444; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .status-info { font-size: 0.85rem; color: #666; margin-top: 5px; }
+        button { width: 100%; padding: 15px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 1rem; transition: 0.3s; }
+        button:hover { background: #1b5e20; transform: scale(1.01); }
+    </style>
+</head>
+<body>
+
+<div class="admin-box">
+    <h2>⚙️ QUẢN TRỊ KẾT QUẢ</h2>
+    <div id="loadingStatus" style="text-align: center; color: #666;">⏳ Đang tải dữ liệu từ DB...</div>
+    <div id="inputControls"></div>
+    <button onclick="uploadToFirebase()">🚀 CẬP NHẬT LÊN HỆ THỐNG</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const encodedURL = "aHR0cHM6Ly9zb3hvbmhhZ2lvYW4tZGVmYXVsdC1ydGRiLmFzaWEtc291dGhlYXN0MS5maXJlYmFzZWRhdGFiYXNlLmFwcA==";
+    const firebaseConfig = { databaseURL: atob(encodedURL) };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const config = [
+        { key: 'db', name: 'Giải Đặc Biệt' },
+        { key: 'g1', name: 'Giải Nhất' },
+        { key: 'g2', name: 'Giải Nhì' },
+        { key: 'g3', name: 'Giải Ba' },
+        { key: 'g4', name: 'Giải Tư' },
+        { key: 'g5', name: 'Giải Năm' },
+        { key: 'g6', name: 'Giải Sáu' },
+        { key: 'gkk', name: 'Giải Khuyến Khích' }
+    ];
+
+    // Tạo các ô nhập liệu rỗng trước
+    const container = document.getElementById('inputControls');
+    config.forEach(p => {
+        container.innerHTML += `
+            <div class="prize-group">
+                <label>${p.name}:</label>
+                <input type="text" id="in_${p.key}" placeholder="Ví dụ: 12345, 67890">
+                <div class="status-info" id="status_${p.key}">Chưa có dữ liệu</div>
+            </div>`;
+    });
+
+    const resultsRef = ref(db, 'lottery_results');
+    onValue(resultsRef, (snapshot) => {
+        const data = snapshot.val();
+        document.getElementById('loadingStatus').style.display = 'none';
+        
+        if (data) {
+            config.forEach(p => {
+                const prizeData = data[p.key];
+                if (prizeData) {
+                    const valString = Array.isArray(prizeData) ? prizeData.join(', ') : Object.values(prizeData).join(', ');
+                    document.getElementById(`in_${p.key}`).value = valString;
+                    document.getElementById(`status_${p.key}`).innerHTML = `✅ Hiện tại: <b style="color:#d32f2f">${valString}</b>`;
+                }
+            });
+        }
+    }, { onlyOnce: true });
+
+    window.uploadToFirebase = function() {
+        const dataToUpload = {};
+        const allNewNumbers = []; // Mảng chứa tất cả các số mới đang nhập để check trùng nội bộ
+        const duplicates = []; // Chứa các số bị trùng
+
+        // Bước 1: Thu thập và kiểm tra trùng lặp
+        for (const p of config) {
+            const val = document.getElementById(`in_${p.key}`).value;
+            const nums = val ? val.split(',').map(s => s.trim()).filter(s => s !== "") : [];
+            
+            for (const n of nums) {
+                if (allNewNumbers.includes(n)) {
+                    duplicates.push(n);
+                } else {
+                    allNewNumbers.push(n);
+                }
+            }
+            dataToUpload[p.key] = nums;
+        }
+
+        // Bước 2: Thông báo nếu có trùng lặp
+        if (duplicates.length > 0) {
+            const uniqueDupes = [...new Set(duplicates)];
+            alert(`⚠️ CẢNH BÁO TRÙNG LẶP!\nCác số sau đây bị nhập trùng nhiều lần: ${uniqueDupes.join(', ')}.\nVui lòng kiểm tra lại trước khi cập nhật.`);
+            return; // Dừng cập nhật
+        }
+
+        // Bước 3: Nếu không trùng thì tiến hành lưu
+        set(ref(db, 'lottery_results'), dataToUpload)
+            .then(() => {
+                alert("✅ Cập nhật thành công! Dữ liệu đã được đồng bộ.");
+                // Cập nhật lại dòng trạng thái hiển thị
+                config.forEach(p => {
+                    const val = dataToUpload[p.key].join(', ');
+                    document.getElementById(`status_${p.key}`).innerHTML = `✅ Hiện tại: <b style="color:#d32f2f">${val || 'Trống'}</b>`;
+                });
+            })
+            .catch(err => alert("❌ Lỗi kết nối CSDL: " + err.message));
+    };
+</script>
+</body>
+</html>
