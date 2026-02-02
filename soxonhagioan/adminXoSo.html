@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
+     <meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <title>Bảo Mật Quản Trị Số May Mắn - Nhà Gioan</title>
     <meta name="description" content="Chương trình quay số may mắn chúc mừng năm mới 2026 dành riêng cho gia đình nhà Gioan.">
     
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://your-link.com/"> 
+    <meta property="og:url" content="https://github.com/nguyenngocdang00/somaymannhagioan/edit/main/soxonhagioan/adminXoSo.html"> 
     <meta property="og:title" content="🧧 Bảo Mật Quản Trị Số May Mắn - Nhà Gioan 🧧">
     <meta property="og:description" content="Cùng thử vận may đầu năm với chương trình quay số hấp dẫn. Chúc mừng năm mới 2026!">
     <meta property="og:image" content="https://nguyenngocdang00.github.io/somaymannhagioan/soxonhagioan/loGoDoan.png"> 
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:title" content="🧧 Bảo Mật Quản Trị Số May Mắn - Nhà Gioan 🧧">
     <meta property="twitter:description" content="Cùng thử vận may đầu năm 2026!">
-    
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #d32f2f; display: flex; justify-content: center; align-items: center; z-index: 9999; }
@@ -28,7 +27,7 @@
         label { font-weight: bold; display: block; margin-bottom: 5px; color: #444; }
         
         input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
-        textarea { height: 150px; resize: vertical; } /* Ô nhập rộng cho 100 giải */
+        textarea { height: 120px; resize: vertical; } /* Độ cao vừa phải cho các giải nhiều số */
         
         .count-badge { float: right; background: #666; color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; }
         .status-info { font-size: 0.85rem; color: #666; margin-top: 5px; word-break: break-all; }
@@ -66,7 +65,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Mật khẩu "gioan2026" mã hóa 2 lớp
     const ENCODED_ADMIN_KEY = "WjJsdllXNHlNREky"; 
 
     let timeLeft = 15 * 60; 
@@ -83,9 +81,11 @@
 
     const container = document.getElementById('inputControls');
     config.forEach(p => {
-        // Nếu là giải khuyến khích thì dùng textarea, các giải khác dùng input
-        const inputTag = p.key === 'gkk' 
-            ? `<textarea id="in_${p.key}" placeholder="Dán 100 số vào đây (cách nhau bởi dấu phẩy hoặc xuống dòng)" oninput="updateBadge('${p.key}')"></textarea>`
+        // CẬP NHẬT: Giải Tư (g4), Năm (g5), Sáu (g6) và Khuyến Khích (gkk) dùng textarea
+        const isLargePrize = ['g4', 'g5', 'g6', 'gkk'].includes(p.key);
+        
+        const inputTag = isLargePrize 
+            ? `<textarea id="in_${p.key}" placeholder="Dán các số vào đây (cách nhau bởi dấu phẩy, khoảng trắng hoặc xuống dòng)" oninput="updateBadge('${p.key}')"></textarea>`
             : `<input type="text" id="in_${p.key}" placeholder="Ví dụ: 1234, 5678" oninput="updateBadge('${p.key}')">`;
 
         container.innerHTML += `
@@ -98,7 +98,6 @@
 
     window.updateBadge = function(key) {
         const val = document.getElementById(`in_${key}`).value;
-        // Tách số theo dấu phẩy, khoảng trắng hoặc xuống dòng
         const nums = val ? val.split(/[\s,\n]+/).filter(s => s.trim() !== "") : [];
         const target = config.find(c => c.key === key).target;
         const badge = document.getElementById(`badge_${key}`);
@@ -161,10 +160,10 @@
         const dataToUpload = {};
         const allNums = [];
         const dupes = [];
+        let missingPrizes = [];
 
         for (const p of config) {
             const val = document.getElementById(`in_${p.key}`).value;
-            // Xử lý linh hoạt dấu phẩy và xuống dòng
             const nums = val ? val.split(/[\s,\n]+/).map(s => s.trim()).filter(s => s !== "") : [];
             
             nums.forEach(n => {
@@ -172,6 +171,13 @@
                 else allNums.push(n);
             });
             dataToUpload[p.key] = nums;
+
+            // Kiểm tra số lượng cho các giải lớn
+            if (['g4', 'g5', 'g6', 'gkk'].includes(p.key)) {
+                if (nums.length > 0 && nums.length !== p.target) {
+                    missingPrizes.push(`${p.name} (hiện có ${nums.length}/${p.target})`);
+                }
+            }
         }
 
         if (dupes.length > 0) {
@@ -179,9 +185,8 @@
             return;
         }
 
-        const gkkCount = dataToUpload['gkk'].length;
-        if (gkkCount !== 100 && gkkCount > 0) {
-            if(!confirm(`⚠️ Giải Khuyến Khích mới có ${gkkCount}/100 số. Bạn vẫn muốn lưu?`)) return;
+        if (missingPrizes.length > 0) {
+            if(!confirm(`⚠️ Một số giải chưa đủ số lượng:\n- ${missingPrizes.join('\n- ')}\n\nBạn vẫn muốn lưu chứ?`)) return;
         }
 
         set(ref(db, 'lottery_results'), dataToUpload)
