@@ -22,10 +22,71 @@
     .header-title {
             text-align: center; color: var(--primary); font-size: 1.5rem;
         }
+			/* THIẾT KẾ BỘ ĐẾM TINH TẾ HƠN */
+.visitor-counter {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: var(--glass);
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 2px solid var(--tet-gold);
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: var(--tet-red);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    backdrop-filter: blur(5px); /* Làm mờ hậu cảnh cho hiệu ứng kính */
+}
+
+.visitor-counter i {
+    font-size: 1.1rem;
+}
+
+.counter-label {
+    opacity: 0.8;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#visit-count {
+    font-size: 1.1rem;
+    color: #b71c1c;
+}
+
+/* TỐI ƯU CHO MOBILE */
+@media (max-width: 768px) {
+    .visitor-counter {
+        bottom: auto;
+        top: 15px;
+        left: 15px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    #visit-count {
+        font-size: 0.9rem;
+    }
+    
+    /* Đẩy điều khiển nhạc xuống dưới để không bị chồng lấn trên mobile */
+    .audio-controls {
+        top: auto;
+        bottom: 20px;
+        right: 15px;
+    }
+}
 	</style>
 </head>
 <body>
-
+<div class="visitor-counter">
+    <span class="counter-label">lượt truy cập</span>
+    <span id="visit-count">0000</span>
+</div>
 <div class="container">
     <h1>🏆 KẾT QUẢ QUAY SỐ HÔM NAY</h1>
 	<h3 class="header-title">🧧 Quay Số May Mắn Chúc Mừng Năm Mới nhà Gioan 🧧</h3>
@@ -44,7 +105,51 @@
         </tbody>
     </table>
 </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+    const encodedURL = "aHR0cHM6Ly9zb3hvbmhhZ2lvYW4tZGVmYXVsdC1ydGRiLmFzaWEtc291dGhlYXN0MS5maXJlYmFzZWRhdGFiYXNlLmFwcA==";
+    const firebaseConfig = {
+        databaseURL: atob(encodedURL)
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const visitRef = ref(db, 'visitCount_viewKQ');
+
+    // --- ĐOẠN CODE CHỐNG SPAM (GIỚI HẠN 15 PHÚT) ---
+    const VISIT_TIMEOUT = 15 * 60 * 1000; // 15 phút quy đổi ra miligiây
+    const now = new Date().getTime();
+    const lastVisit = localStorage.getItem('hasVisited_Lottery_Time_KQ');
+
+    // Kiểm tra: Nếu chưa từng ghé thăm HOẶC thời gian chờ đã quá 15 phút
+    if (!lastVisit || (now - lastVisit > VISIT_TIMEOUT)) {
+        runTransaction(visitRef, (currentValue) => {
+            return (currentValue || 0) + 1;
+        }).then(() => {
+            // Lưu mốc thời gian truy cập hiện tại
+            localStorage.setItem('hasVisited_Lottery_Time_KQ', now);
+            console.log("Đã tính 1 lượt truy cập mới.");
+        }).catch((error) => {
+            console.error("Lỗi khi tăng lượt truy cập:", error);
+        });
+    } else {
+        const minutesLeft = Math.ceil((VISIT_TIMEOUT - (now - lastVisit)) / (60 * 1000));
+        console.log(`Chống spam: Cần chờ ${minutesLeft} phút nữa để tính lượt mới.`);
+    }
+    // ----------------------------------------------
+
+    onValue(visitRef, (snapshot) => {
+        const count = snapshot.val();
+        if (count !== null) {
+            const displayElement = document.getElementById('visit-count');
+            if (displayElement) {
+                displayElement.innerText = count.toLocaleString();
+            }
+        }
+    });
+</script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
