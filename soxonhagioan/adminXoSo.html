@@ -2,26 +2,42 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quản Trị Kết Quả Xổ Số</title>
+    <title>Bảo Mật Quản Trị Xổ Số</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
-        .admin-box { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        /* Giao diện đăng nhập */
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #d32f2f; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .login-box { background: white; padding: 40px; border-radius: 15px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .login-box h2 { margin-bottom: 20px; color: #333; }
+        .login-box input { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 8px; font-size: 1.2rem; text-align: center; }
+        
+        /* Giao diện Admin */
+        .admin-box { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: none; }
         h2 { color: #d32f2f; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .prize-group { margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 8px; border-left: 4px solid #d32f2f; }
         label { font-weight: bold; display: block; margin-bottom: 5px; color: #444; }
         input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         .status-info { font-size: 0.85rem; color: #666; margin-top: 5px; }
-        button { width: 100%; padding: 15px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 1rem; transition: 0.3s; }
-        button:hover { background: #1b5e20; transform: scale(1.01); }
+        .btn-update { width: 100%; padding: 15px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 1rem; }
+        .btn-logout { background: #666; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="admin-box">
+<div id="loginOverlay">
+    <div class="login-box">
+        <h2>🔒 QUẢN TRỊ VIÊN</h2>
+        <input type="password" id="adminPassword" placeholder="Nhập mã truy cập...">
+        <button class="btn-update" onclick="checkLogin()">ĐĂNG NHẬP</button>
+    </div>
+</div>
+
+<div class="admin-box" id="adminContent">
     <h2>⚙️ QUẢN TRỊ KẾT QUẢ</h2>
-    <div id="loadingStatus" style="text-align: center; color: #666;">⏳ Đang tải dữ liệu từ DB...</div>
+    <div id="loadingStatus" style="text-align: center; color: #666;">⏳ Đang tải dữ liệu...</div>
     <div id="inputControls"></div>
-    <button onclick="uploadToFirebase()">🚀 CẬP NHẬT LÊN HỆ THỐNG</button>
+    <button class="btn-update" onclick="uploadToFirebase()">🚀 CẬP NHẬT LÊN HỆ THỐNG</button>
+    <button class="btn-update btn-logout" onclick="logout()">THOÁT</button>
 </div>
 
 <script type="module">
@@ -32,6 +48,9 @@
     const firebaseConfig = { databaseURL: atob(encodedURL) };
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+
+    // MẬT KHẨU TRUY CẬP (Bạn có thể đổi '123456' thành mật khẩu của bạn)
+    const ADMIN_KEY = "gioan2026"; 
 
     const config = [
         { key: 'db', name: 'Giải Đặc Biệt' },
@@ -44,7 +63,23 @@
         { key: 'gkk', name: 'Giải Khuyến Khích' }
     ];
 
-    // Tạo các ô nhập liệu rỗng trước
+    // Kiểm tra đăng nhập khi mở trang
+    window.checkLogin = function() {
+        const pass = document.getElementById('adminPassword').value;
+        if (pass === ADMIN_KEY) {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
+            loadDatabase();
+        } else {
+            alert("❌ Sai mật khẩu!");
+        }
+    };
+
+    window.logout = function() {
+        location.reload();
+    };
+
+    // Tạo các ô nhập liệu
     const container = document.getElementById('inputControls');
     config.forEach(p => {
         container.innerHTML += `
@@ -55,29 +90,29 @@
             </div>`;
     });
 
-    const resultsRef = ref(db, 'lottery_results');
-    onValue(resultsRef, (snapshot) => {
-        const data = snapshot.val();
-        document.getElementById('loadingStatus').style.display = 'none';
-        
-        if (data) {
-            config.forEach(p => {
-                const prizeData = data[p.key];
-                if (prizeData) {
-                    const valString = Array.isArray(prizeData) ? prizeData.join(', ') : Object.values(prizeData).join(', ');
-                    document.getElementById(`in_${p.key}`).value = valString;
-                    document.getElementById(`status_${p.key}`).innerHTML = `✅ Hiện tại: <b style="color:#d32f2f">${valString}</b>`;
-                }
-            });
-        }
-    }, { onlyOnce: true });
+    function loadDatabase() {
+        const resultsRef = ref(db, 'lottery_results');
+        onValue(resultsRef, (snapshot) => {
+            const data = snapshot.val();
+            document.getElementById('loadingStatus').style.display = 'none';
+            if (data) {
+                config.forEach(p => {
+                    const prizeData = data[p.key];
+                    if (prizeData) {
+                        const valString = Array.isArray(prizeData) ? prizeData.join(', ') : Object.values(prizeData).join(', ');
+                        document.getElementById(`in_${p.key}`).value = valString;
+                        document.getElementById(`status_${p.key}`).innerHTML = `✅ Hiện tại: <b style="color:#d32f2f">${valString}</b>`;
+                    }
+                });
+            }
+        }, { onlyOnce: true });
+    }
 
     window.uploadToFirebase = function() {
         const dataToUpload = {};
-        const allNewNumbers = []; // Mảng chứa tất cả các số mới đang nhập để check trùng nội bộ
-        const duplicates = []; // Chứa các số bị trùng
+        const allNewNumbers = [];
+        const duplicates = [];
 
-        // Bước 1: Thu thập và kiểm tra trùng lặp
         for (const p of config) {
             const val = document.getElementById(`in_${p.key}`).value;
             const nums = val ? val.split(',').map(s => s.trim()).filter(s => s !== "") : [];
@@ -92,24 +127,14 @@
             dataToUpload[p.key] = nums;
         }
 
-        // Bước 2: Thông báo nếu có trùng lặp
         if (duplicates.length > 0) {
-            const uniqueDupes = [...new Set(duplicates)];
-            alert(`⚠️ CẢNH BÁO TRÙNG LẶP!\nCác số sau đây bị nhập trùng nhiều lần: ${uniqueDupes.join(', ')}.\nVui lòng kiểm tra lại trước khi cập nhật.`);
-            return; // Dừng cập nhật
+            alert(`⚠️ CẢNH BÁO TRÙNG LẶP!\nSố: ${[...new Set(duplicates)].join(', ')} bị nhập trùng.`);
+            return;
         }
 
-        // Bước 3: Nếu không trùng thì tiến hành lưu
         set(ref(db, 'lottery_results'), dataToUpload)
-            .then(() => {
-                alert("✅ Cập nhật thành công! Dữ liệu đã được đồng bộ.");
-                // Cập nhật lại dòng trạng thái hiển thị
-                config.forEach(p => {
-                    const val = dataToUpload[p.key].join(', ');
-                    document.getElementById(`status_${p.key}`).innerHTML = `✅ Hiện tại: <b style="color:#d32f2f">${val || 'Trống'}</b>`;
-                });
-            })
-            .catch(err => alert("❌ Lỗi kết nối CSDL: " + err.message));
+            .then(() => alert("✅ Đã đồng bộ dữ liệu thành công!"))
+            .catch(err => alert("❌ Lỗi: " + err.message));
     };
 </script>
 </body>
