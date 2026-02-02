@@ -5,13 +5,10 @@
     <title>Bảo Mật Quản Trị Xổ Số</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
-        /* Giao diện đăng nhập */
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #d32f2f; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .login-box { background: white; padding: 40px; border-radius: 15px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .login-box h2 { margin-bottom: 20px; color: #333; }
-        .login-box input { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 8px; font-size: 1.2rem; text-align: center; }
+        .login-box { background: white; padding: 40px; border-radius: 15px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 320px; }
+        .login-box input { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 8px; font-size: 1.2rem; text-align: center; box-sizing: border-box; }
         
-        /* Giao diện Admin */
         .admin-box { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: none; }
         h2 { color: #d32f2f; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .prize-group { margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 8px; border-left: 4px solid #d32f2f; }
@@ -20,13 +17,14 @@
         .status-info { font-size: 0.85rem; color: #666; margin-top: 5px; }
         .btn-update { width: 100%; padding: 15px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 1rem; }
         .btn-logout { background: #666; margin-top: 10px; }
+        .timer-info { text-align: center; color: #d32f2f; font-weight: bold; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div id="loginOverlay">
     <div class="login-box">
-        <h2>🔒 QUẢN TRỊ VIÊN</h2>
+        <h2>🔒 ADMIN LOGIN</h2>
         <input type="password" id="adminPassword" placeholder="Nhập mã truy cập...">
         <button class="btn-update" onclick="checkLogin()">ĐĂNG NHẬP</button>
     </div>
@@ -34,6 +32,7 @@
 
 <div class="admin-box" id="adminContent">
     <h2>⚙️ QUẢN TRỊ KẾT QUẢ</h2>
+    <div class="timer-info" id="sessionTimer">Phiên làm việc: 15:00</div>
     <div id="loadingStatus" style="text-align: center; color: #666;">⏳ Đang tải dữ liệu...</div>
     <div id="inputControls"></div>
     <button class="btn-update" onclick="uploadToFirebase()">🚀 CẬP NHẬT LÊN HỆ THỐNG</button>
@@ -44,13 +43,17 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+
     const encodedURL = "aHR0cHM6Ly9zb3hvbmhhZ2lvYW4tZGVmYXVsdC1ydGRiLmFzaWEtc291dGhlYXN0MS5maXJlYmFzZWRhdGFiYXNlLmFwcA==";
     const firebaseConfig = { databaseURL: atob(encodedURL) };
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // MẬT KHẨU TRUY CẬP (Bạn có thể đổi '123456' thành mật khẩu của bạn)
-    const ADMIN_KEY = "gioan2026"; 
+
+    const ENCODED_ADMIN_KEY = "WjJsdllXNHlNREky"; 
+
+    let sessionTimeout;
+    let timeLeft = 15 * 60; 
 
     const config = [
         { key: 'db', name: 'Giải Đặc Biệt' },
@@ -63,46 +66,62 @@
         { key: 'gkk', name: 'Giải Khuyến Khích' }
     ];
 
-    // Kiểm tra đăng nhập khi mở trang
-    window.checkLogin = function() {
-        const pass = document.getElementById('adminPassword').value;
-        if (pass === ADMIN_KEY) {
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('adminContent').style.display = 'block';
-            loadDatabase();
-        } else {
-            alert("❌ Sai mật khẩu!");
-        }
-    };
-
-    window.logout = function() {
-        location.reload();
-    };
-
-    // Tạo các ô nhập liệu
+    // Tạo form nhập liệu
     const container = document.getElementById('inputControls');
     config.forEach(p => {
         container.innerHTML += `
             <div class="prize-group">
                 <label>${p.name}:</label>
-                <input type="text" id="in_${p.key}" placeholder="Ví dụ: 12345, 67890">
-                <div class="status-info" id="status_${p.key}">Chưa có dữ liệu</div>
+                <input type="text" id="in_${p.key}" placeholder="Các số cách nhau bằng dấu phẩy">
+                <div class="status-info" id="status_${p.key}">Đang tải...</div>
             </div>`;
     });
 
+    window.checkLogin = function() {
+        const inputPass = document.getElementById('adminPassword').value;
+        // Giải mã mật khẩu 2 lần để so khớp
+        const decodedKey = atob(atob(ENCODED_ADMIN_KEY)); 
+
+        if (inputPass === decodedKey) {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
+            startSessionTimer();
+            loadDatabase();
+        } else {
+            alert("❌ Mật khẩu không chính xác!");
+        }
+    };
+
+    function startSessionTimer() {
+        const timerDisplay = document.getElementById('sessionTimer');
+        const interval = setInterval(() => {
+            timeLeft--;
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerDisplay.innerText = `Phiên làm việc: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                alert("⏰ Hết thời gian phiên làm việc! Vui lòng đăng nhập lại.");
+                logout();
+            }
+        }, 1000);
+    }
+
+    window.logout = function() {
+        location.reload();
+    };
+
     function loadDatabase() {
-        const resultsRef = ref(db, 'lottery_results');
-        onValue(resultsRef, (snapshot) => {
+        onValue(ref(db, 'lottery_results'), (snapshot) => {
             const data = snapshot.val();
             document.getElementById('loadingStatus').style.display = 'none';
             if (data) {
                 config.forEach(p => {
                     const prizeData = data[p.key];
-                    if (prizeData) {
-                        const valString = Array.isArray(prizeData) ? prizeData.join(', ') : Object.values(prizeData).join(', ');
-                        document.getElementById(`in_${p.key}`).value = valString;
-                        document.getElementById(`status_${p.key}`).innerHTML = `✅ Hiện tại: <b style="color:#d32f2f">${valString}</b>`;
-                    }
+                    const valString = Array.isArray(prizeData) ? prizeData.join(', ') : (prizeData ? Object.values(prizeData).join(', ') : '');
+                    document.getElementById(`in_${p.key}`).value = valString;
+                    document.getElementById(`status_${p.key}`).innerHTML = `✅ Hiện tại: <b>${valString || 'Trống'}</b>`;
                 });
             }
         }, { onlyOnce: true });
@@ -110,31 +129,28 @@
 
     window.uploadToFirebase = function() {
         const dataToUpload = {};
-        const allNewNumbers = [];
-        const duplicates = [];
+        const allNums = [];
+        const dupes = [];
 
         for (const p of config) {
             const val = document.getElementById(`in_${p.key}`).value;
             const nums = val ? val.split(',').map(s => s.trim()).filter(s => s !== "") : [];
             
-            for (const n of nums) {
-                if (allNewNumbers.includes(n)) {
-                    duplicates.push(n);
-                } else {
-                    allNewNumbers.push(n);
-                }
-            }
+            nums.forEach(n => {
+                if (allNums.includes(n)) dupes.push(n);
+                else allNums.push(n);
+            });
             dataToUpload[p.key] = nums;
         }
 
-        if (duplicates.length > 0) {
-            alert(`⚠️ CẢNH BÁO TRÙNG LẶP!\nSố: ${[...new Set(duplicates)].join(', ')} bị nhập trùng.`);
+        if (dupes.length > 0) {
+            alert(`⚠️ Lỗi trùng lặp số: ${[...new Set(dupes)].join(', ')}`);
             return;
         }
 
         set(ref(db, 'lottery_results'), dataToUpload)
-            .then(() => alert("✅ Đã đồng bộ dữ liệu thành công!"))
-            .catch(err => alert("❌ Lỗi: " + err.message));
+            .then(() => alert("🚀 Đã cập nhật dữ liệu thành công!"))
+            .catch(err => alert("❌ Lỗi lưu trữ: " + err.message));
     };
 </script>
 </body>
