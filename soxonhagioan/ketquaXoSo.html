@@ -25,155 +25,117 @@
             --tet-gold: #ffc107; 
             --dark-red: #b71c1c;
             --bg-color: #fdf2f2;
+            --container-bg: #ffffff;
+            --text-color: #333;
+            --input-bg: #ffffff;
+            --table-border: #ffecb3;
+        }
+
+        /* Dark Mode Variables */
+        [data-theme="dark"] {
+            --tet-red: #ff5252;
+            --tet-gold: #ffd700;
+            --dark-red: #880e4f;
+            --bg-color: #1a0000;
+            --container-bg: #2d0000;
+            --text-color: #fff9c4;
+            --input-bg: #3d0000;
+            --table-border: #5d0000;
         }
 
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             background-color: var(--bg-color); 
-            background-image: radial-gradient(#ffebee 1px, transparent 1px);
-            background-size: 20px 20px;
             margin: 0;
             padding: 15px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .theme-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            padding: 8px 15px;
+            background: var(--tet-gold);
+            color: var(--dark-red);
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
         .container { 
             max-width: 900px; 
             width: 100%;
-            background: white; 
+            background: var(--container-bg); 
             padding: 25px; 
             border-radius: 20px; 
             border: 3px solid var(--tet-gold);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
             position: relative;
+            margin-top: 50px;
         }
 
-        h1 { 
-            text-align: center; 
-            color: var(--tet-red); 
-            font-size: clamp(1.2rem, 5vw, 1.8rem); 
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
+        h1 { text-align: center; color: var(--tet-red); font-size: clamp(1.2rem, 5vw, 1.8rem); text-transform: uppercase; }
 
         .header-title { 
-            text-align: center; 
-            color: var(--tet-red); 
-            font-size: clamp(1rem, 4vw, 1.3rem);
-            background: #fff9c4;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 25px;
+            text-align: center; color: var(--tet-red); font-size: clamp(0.9rem, 4vw, 1.2rem);
+            background: rgba(255, 193, 7, 0.2);
+            padding: 10px; border-radius: 10px; margin-bottom: 25px;
         }
 
         .check-box { 
-            background: #fffde7; 
-            padding: 20px; 
-            border-radius: 15px; 
-            margin-bottom: 20px; 
-            display: flex; 
-            gap: 10px; 
-            border: 1px dashed var(--tet-gold);
+            background: var(--input-bg); padding: 20px; border-radius: 15px; 
+            margin-bottom: 20px; display: flex; gap: 10px; border: 1px dashed var(--tet-gold);
         }
 
         input { 
-            flex: 1; 
-            padding: 12px; 
-            border: 2px solid #eee; 
-            border-radius: 8px; 
-            font-size: 1rem;
-            outline: none;
-            transition: 0.3s;
+            flex: 1; padding: 12px; border: 2px solid var(--tet-gold); border-radius: 8px; 
+            background: var(--input-bg); color: var(--text-color); font-size: 1rem;
         }
-
-        input:focus { border-color: var(--tet-red); }
 
         button { 
-            padding: 12px 25px; 
-            background: linear-gradient(135deg, var(--tet-red), var(--dark-red)); 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: bold;
-            transition: 0.3s;
-            box-shadow: 0 4px 0 #880e4f;
+            padding: 12px 25px; background: linear-gradient(135deg, var(--tet-red), var(--dark-red)); 
+            color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;
         }
 
-        button:active { transform: translateY(3px); box-shadow: none; }
-
-        .result-msg { 
-            text-align: center; 
-            margin: 15px 0; 
-            font-weight: bold; 
-            font-size: 1.1rem;
-            min-height: 30px; 
+        .result-msg { text-align: center; margin: 10px 0; font-weight: bold; font-size: 1.1rem; min-height: 30px; }
+        
+        .lucky-wish {
+            text-align: center; font-style: italic; color: var(--tet-gold);
+            margin-bottom: 15px; font-size: 1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
 
-        /* Responsive Table */
         .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
+        th, td { border: 1px solid var(--table-border); padding: 15px 10px; text-align: center; }
+        th { background: var(--tet-red); color: white; }
+        .prize-name { font-weight: bold; background: rgba(211, 47, 47, 0.05); color: var(--tet-red); width: 35%; }
+        .db-highlight { color: var(--tet-red); font-size: 1.6rem; font-weight: bold; }
 
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        th, td { 
-            border: 1px solid #ffecb3; 
-            padding: 15px 10px; 
-            text-align: center; 
-        }
-
-        th { 
-            background: var(--tet-red); 
-            color: white; 
-            font-size: 1.1rem;
-        }
-
-        .prize-name { 
-            font-weight: bold; 
-            background: #fff3f3; 
-            color: var(--tet-red); 
-            width: 30%; 
-        }
-
-        .prize-numbers { 
-            font-size: 1.1rem; 
-            font-weight: bold; 
-            letter-spacing: 2px; 
-            color: #333; 
-        }
-
-        .db-highlight { 
-            color: #d32f2f; 
-            font-size: 1.6rem; 
-            text-shadow: 1px 1px 0px #ffc107;
-        }
-
-        /* Visitor Counter */
         .visitor-counter {
-            position: fixed; bottom: 20px; left: 20px; 
-            background: white;
-            padding: 8px 15px; border-radius: 50px; 
-            border: 2px solid var(--tet-gold);
-            font-size: 0.85rem; font-weight: bold; color: var(--tet-red);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
+            position: fixed; bottom: 20px; left: 20px; background: var(--container-bg);
+            padding: 8px 15px; border-radius: 50px; border: 2px solid var(--tet-gold);
+            font-size: 0.85rem; font-weight: bold; color: var(--tet-red); z-index: 1000;
         }
 
         @media (max-width: 600px) {
-            .container { padding: 15px; }
             .check-box { flex-direction: column; }
-            .visitor-counter { bottom: 10px; left: 10px; font-size: 0.75rem; }
-            .prize-numbers { font-size: 0.95rem; letter-spacing: 1px; }
-            th, td { padding: 10px 5px; }
+            .container { padding: 15px; }
+            .theme-switch { top: 10px; right: 10px; padding: 5px 10px; }
         }
     </style>
 </head>
-<body>
+<body data-theme="light">
+
+<div class="theme-switch" onclick="toggleTheme()">🌙 CHẾ ĐỘ TỐI</div>
+
+<audio id="winSound" src="https://www.myinstants.com/media/sounds/tada.mp3" preload="auto"></audio>
 
 <div class="visitor-counter">
     LƯỢT TRUY CẬP: <span id="visit-count">0000</span>
@@ -184,12 +146,12 @@
     <h3 class="header-title">🧧 Quay Số May Mắn Chúc Mừng Năm Mới nhà Gioan 🧧</h3>
     
     <div class="check-box">
-        <input type="text" id="userTicket" maxlength="4" placeholder="Nhập số vé của bạn (vd: 1234)">
+        <input type="text" id="userTicket" maxlength="4" placeholder="Nhập số vé của bạn...">
         <button id="btnCheck">DÒ SỐ</button>
     </div>
-    <div id="checkMessage" class="result-msg"></div>
 
-    <div class="table-wrapper">
+    <div id="checkMessage" class="result-msg"></div>
+    <div id="luckyWish" class="lucky-wish"></div> <div class="table-wrapper">
         <table>
             <thead>
                 <tr><th>Giải</th><th>Số Trúng Thưởng</th></tr>
@@ -210,35 +172,59 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const visitRef = ref(db, 'visitCount_viewKQ');
-    const lastVisit = localStorage.getItem('hasVisited_Lottery_Time_KQ');
-    const now = new Date().getTime();
+    // --- LỜI CHÚC TẾT NGẪU NHIÊN ---
+    const tetholidayWishes = [
+        "🧧 Vạn sự như ý - Tỉ sự như mơ!",
+        "🧧 Phát tài phát lộc - Tiền vô xồng xộc!",
+        "🧧 Sức khỏe dồi dào - Hạnh phúc dâng trào!",
+        "🧧 Năm mới thắng lợi mới, niềm vui mới!",
+        "🧧 Công thành danh toại - Trẻ mãi không già!",
+        "🧧 Gia đình bình an - Hạnh phúc nồng nàn!",
+        "🧧 Lộc đầy túi, tim đầy tình, gia đình hạnh phúc!"
+    ];
 
-    if (!lastVisit || (now - lastVisit > 15 * 60 * 1000)) {
-        runTransaction(visitRef, (val) => (val || 0) + 1);
-        localStorage.setItem('hasVisited_Lottery_Time_KQ', now);
+    function showRandomWish() {
+        const wishElem = document.getElementById('luckyWish');
+        const randomWish = tetholidayWishes[Math.floor(Math.random() * tetholidayWishes.length)];
+        wishElem.innerText = randomWish;
     }
 
-    onValue(visitRef, (s) => {
-        if (s.exists()) document.getElementById('visit-count').innerText = s.val().toLocaleString();
-    });
+    // --- CHẾ ĐỘ TỐI (DARK MODE) ---
+    window.toggleTheme = function() {
+        const body = document.body;
+        const btn = document.querySelector('.theme-switch');
+        if (body.getAttribute('data-theme') === 'light') {
+            body.setAttribute('data-theme', 'dark');
+            btn.innerText = "☀️ CHẾ ĐỘ SÁNG";
+            localStorage.setItem('theme', 'dark');
+        } else {
+            body.setAttribute('data-theme', 'light');
+            btn.innerText = "🌙 CHẾ ĐỘ TỐI";
+            localStorage.setItem('theme', 'light');
+        }
+    }
+    // Khôi phục theme đã lưu
+    if (localStorage.getItem('theme') === 'dark') toggleTheme();
 
+    // --- LOGIC FIREWORKS ---
     function launchFireworks() {
-        var end = Date.now() + (4 * 1000);
-        var colors = ['#ff0000', '#ffd700', '#ffffff'];
+        var end = Date.now() + (3 * 1000);
         (function frame() {
-            confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: colors });
-            confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
+            confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ff0000', '#ffd700'] });
+            confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ff0000', '#ffd700'] });
             if (Date.now() < end) requestAnimationFrame(frame);
         }());
     }
 
+    // --- FIREBASE DATA ---
+    const visitRef = ref(db, 'visitCount_viewKQ');
+    onValue(visitRef, (s) => { if(s.exists()) document.getElementById('visit-count').innerText = s.val().toLocaleString(); });
+
     const config = [
-        { key: 'db', name: 'Giải Đặc Biệt' },
-        { key: 'g1', name: 'Giải Nhất' }, { key: 'g2', name: 'Giải Nhì' },
-        { key: 'g3', name: 'Giải Ba' }, { key: 'g4', name: 'Giải Tư' },
-        { key: 'g5', name: 'Giải Năm' }, { key: 'g6', name: 'Giải Sáu' },
-        { key: 'gkk', name: 'Giải Khuyến Khích' }
+        { key: 'db', name: 'Giải Đặc Biệt' }, { key: 'g1', name: 'Giải Nhất' },
+        { key: 'g2', name: 'Giải Nhì' }, { key: 'g3', name: 'Giải Ba' },
+        { key: 'g4', name: 'Giải Tư' }, { key: 'g5', name: 'Giải Năm' },
+        { key: 'g6', name: 'Giải Sáu' }, { key: 'gkk', name: 'Giải Khuyến Khích' }
     ];
 
     let currentResults = {};
@@ -252,14 +238,18 @@
             let res = data[p.key];
             let nums = Array.isArray(res) ? res.filter(n => n).join(' - ') : (res || '---');
             const isDB = p.key === 'db' ? 'db-highlight' : '';
-            tbody.innerHTML += `<tr><td class="prize-name">${p.name}</td><td class="prize-numbers ${isDB}">${nums}</td></tr>`;
+            tbody.innerHTML += `<tr><td class="prize-name">${p.name}</td><td style="font-weight:bold" class="${isDB}">${nums}</td></tr>`;
         });
     });
 
+    // --- DÒ SỐ ---
     window.checkWinner = function() {
         const ticket = document.getElementById('userTicket').value.trim();
         const msg = document.getElementById('checkMessage');
         if (!ticket) return;
+
+        showRandomWish(); // Hiển thị câu chúc mỗi lần dò
+
         let won = null;
         for (const p of config) {
             const results = currentResults[p.key];
@@ -268,15 +258,17 @@
                 won = p.name; break;
             }
         }
+
         if (won) {
-            msg.innerHTML = `<span style="color: #2e7d32">🎉 Tuyệt vời! Bạn trúng ${won}! 🧧</span>`;
+            msg.innerHTML = `<span style="color: #4caf50">🎉 TRÚNG RỒI! Bạn trúng ${won}! 🧧</span>`;
+            document.getElementById('winSound').play().catch(()=>{});
             launchFireworks();
         } else {
-            msg.innerHTML = `<span style="color: #d32f2f">😢 Chúc bạn may mắn lần sau!</span>`;
+            msg.innerHTML = `<span style="color: var(--tet-red)">😢 Tiếc quá, chưa trúng rồi!</span>`;
         }
     };
 
-    document.getElementById('userTicket').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.checkWinner(); });
+    document.getElementById('userTicket').addEventListener('keypress', (e) => { if(e.key==='Enter') window.checkWinner(); });
     document.getElementById('btnCheck').addEventListener('click', window.checkWinner);
 </script>
 </body>
