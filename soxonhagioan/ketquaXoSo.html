@@ -21,204 +21,181 @@
 
     <style>
         :root { 
-            --tet-red: #d32f2f; 
-            --tet-gold: #ffc107; 
-            --dark-red: #b71c1c;
-            --bg-color: #fdf2f2;
-            --container-bg: #ffffff;
-            --text-color: #333;
-            --input-bg: #ffffff;
-            --table-border: #ffecb3;
+            --tet-red: #d32f2f; --tet-gold: #ffc107; --dark-red: #b71c1c;
+            --bg-color: #fdf2f2; --container-bg: #ffffff; --text-color: #333;
+            --glass: rgba(255, 255, 255, 0.9);
+            --prize-gray: #5b5b5b; /* Màu chữ yêu cầu */
         }
 
-        /* Dark Mode Variables */
         [data-theme="dark"] {
-            --tet-red: #ff5252;
-            --tet-gold: #ffd700;
-            --dark-red: #880e4f;
-            --bg-color: #1a0000;
-            --container-bg: #2d0000;
-            --text-color: #fff9c4;
-            --input-bg: #3d0000;
-            --table-border: #5d0000;
+            --bg-color: #1a0000; --container-bg: #2d0000; --text-color: #fff9c4;
+            --glass: rgba(45, 0, 0, 0.9);
+            --prize-gray: #e0e0e0;
         }
 
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             background-color: var(--bg-color); 
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-color);
-            transition: all 0.3s ease;
+            margin: 0; padding: 0; color: var(--text-color); transition: 0.3s;
         }
 
-        .theme-switch {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            cursor: pointer;
-            padding: 8px 15px;
-            background: var(--tet-gold);
-            color: var(--dark-red);
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        /* Layout 3 cột cho PC/TV */
+        .main-wrapper {
+            display: grid;
+            grid-template-columns: 320px 1fr 320px;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1600px;
+            margin: auto;
         }
+
+        .sidebar {
+            background: var(--container-bg);
+            border: 2px solid var(--tet-gold);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky; top: 20px; height: fit-content;
+        }
+
+        .sidebar h2 { color: var(--tet-red); font-size: 1.1rem; text-align: center; border-bottom: 2px solid var(--tet-gold); padding-bottom: 10px; margin-top: 0; }
+        .sidebar ul { list-style: none; padding: 0; font-size: 0.9rem; }
+        .sidebar li { margin-bottom: 10px; padding: 5px 0; border-bottom: 1px dashed rgba(211, 47, 47, 0.2); }
+        .sidebar li b { color: var(--tet-red); }
 
         .container { 
-            max-width: 900px; 
-            width: 100%;
-            background: var(--container-bg); 
-            padding: 25px; 
-            border-radius: 20px; 
-            border: 3px solid var(--tet-gold);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
-            position: relative;
-            margin-top: 50px;
+            background: var(--container-bg); padding: 25px; border-radius: 20px; 
+            border: 3px solid var(--tet-gold); box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
-        h1 { text-align: center; color: var(--tet-red); font-size: clamp(1.2rem, 5vw, 1.8rem); text-transform: uppercase; }
+        .theme-switch { position: fixed; top: 15px; right: 15px; cursor: pointer; background: var(--tet-gold); padding: 8px 15px; border-radius: 20px; font-weight: bold; z-index: 2000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
-        .header-title { 
-            text-align: center; color: var(--tet-red); font-size: clamp(0.9rem, 4vw, 1.2rem);
-            background: rgba(255, 193, 7, 0.2);
-            padding: 10px; border-radius: 10px; margin-bottom: 25px;
+        .check-box { background: rgba(255, 193, 7, 0.1); padding: 20px; border-radius: 15px; display: flex; gap: 10px; border: 1px dashed var(--tet-gold); margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; border: 2px solid var(--tet-gold); border-radius: 8px; background: transparent; color: inherit; font-size: 1rem; }
+        button { padding: 12px 25px; background: var(--tet-red); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
+        [data-theme="dark"] table { background: #3d0000; }
+        th, td { border: 1px solid var(--tet-gold); padding: 12px; text-align: center; }
+        th { background: var(--tet-red); color: white; text-transform: uppercase; }
+
+        /* Cập nhật màu và độ đậm cho các giải */
+        .prize-numbers-bold { 
+            font-weight: 800; 
+            font-size: 1.15rem; 
+            letter-spacing: 1px;
+            color: var(--prize-gray); /* Màu #5b5b5b thiết lập ở root */
         }
 
-        .check-box { 
-            background: var(--input-bg); padding: 20px; border-radius: 15px; 
-            margin-bottom: 20px; display: flex; gap: 10px; border: 1px dashed var(--tet-gold);
+        .db-highlight { 
+            color: var(--tet-red); 
+            font-size: 1.8rem; 
+            font-weight: 900; 
+            text-shadow: 1px 1px 0px var(--tet-gold); 
         }
 
-        input { 
-            flex: 1; padding: 12px; border: 2px solid var(--tet-gold); border-radius: 8px; 
-            background: var(--input-bg); color: var(--text-color); font-size: 1rem;
-        }
+        .visitor-counter { position: fixed; bottom: 20px; left: 20px; background: var(--glass); padding: 8px 16px; border-radius: 12px; border: 2px solid var(--tet-gold); color: var(--tet-red); font-weight: bold; z-index: 1000; backdrop-filter: blur(5px); }
 
-        button { 
-            padding: 12px 25px; background: linear-gradient(135deg, var(--tet-red), var(--dark-red)); 
-            color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;
+        /* Ẩn Sidebar trên Mobile */
+        @media (max-width: 1024px) {
+            .main-wrapper { grid-template-columns: 1fr; padding: 15px; }
+            .sidebar { display: none; }
+            .container { margin-top: 40px; }
         }
-
-        .result-msg { text-align: center; margin: 10px 0; font-weight: bold; font-size: 1.1rem; min-height: 30px; }
         
-        .lucky-wish {
-            text-align: center; font-style: italic; color: var(--tet-gold);
-            margin-bottom: 15px; font-size: 1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-
-        .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
-        th, td { border: 1px solid var(--table-border); padding: 15px 10px; text-align: center; }
-        th { background: var(--tet-red); color: white; }
-        .prize-name { font-weight: bold; background: rgba(211, 47, 47, 0.05); color: var(--tet-red); width: 35%; }
-        .db-highlight { color: var(--tet-red); font-size: 1.6rem; font-weight: bold; }
-
-        .visitor-counter {
-            position: fixed; bottom: 20px; left: 20px; background: var(--container-bg);
-            padding: 8px 15px; border-radius: 50px; border: 2px solid var(--tet-gold);
-            font-size: 0.85rem; font-weight: bold; color: var(--tet-red); z-index: 1000;
-        }
-
         @media (max-width: 600px) {
             .check-box { flex-direction: column; }
-            .container { padding: 15px; }
-            .theme-switch { top: 10px; right: 10px; padding: 5px 10px; }
+            .visitor-counter { bottom: auto; top: 15px; left: 15px; font-size: 0.75rem; }
+            h1 { font-size: 1.3rem; }
         }
     </style>
 </head>
 <body data-theme="light">
 
 <div class="theme-switch" onclick="toggleTheme()">🌙 CHẾ ĐỘ TỐI</div>
-
 <audio id="winSound" src="https://www.myinstants.com/media/sounds/tada.mp3" preload="auto"></audio>
 
 <div class="visitor-counter">
-    LƯỢT TRUY CẬP: <span id="visit-count">0000</span>
+    <span class="counter-label">lượt truy cập:</span> <span id="visit-count">0000</span>
 </div>
 
-<div class="container">
-    <h1>🏆 KẾT QUẢ QUAY SỐ HÔM NAY</h1>
-    <h3 class="header-title">🧧 Quay Số May Mắn Chúc Mừng Năm Mới nhà Gioan 🧧</h3>
-    
-    <div class="check-box">
-        <input type="text" id="userTicket" maxlength="4" placeholder="Nhập số vé của bạn...">
-        <button id="btnCheck">DÒ SỐ</button>
+<div class="main-wrapper">
+    <div class="sidebar">
+        <h2>🎁 CƠ CẤU GIẢI THƯỞNG</h2>
+        <ul>
+            <li>✨ <b>1 Đặc Biệt:</b> Máy lọc không khí</li>
+            <li>✨ <b>2 Giải Nhất:</b> Quạt điều hòa</li>
+            <li>✨ <b>3 Giải Nhì:</b> Xe đạp thể thao</li>
+            <li>✨ <b>10 Giải Ba:</b> Bộ bếp từ</li>
+            <li>✨ <b>30 Giải Tư:</b> Dụng cụ lau nhà</li>
+            <li>✨ <b>40 Giải Năm:</b> Bộ ấm chén sứ</li>
+            <li>✨ <b>50 Giải Sáu:</b> Bộ đèn học</li>
+            <li>✨ <b>Gần 100 Giải KK:</b> Combo gia vị</li>
+        </ul>
     </div>
 
-    <div id="checkMessage" class="result-msg"></div>
-    <div id="luckyWish" class="lucky-wish"></div> <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr><th>Giải</th><th>Số Trúng Thưởng</th></tr>
-            </thead>
-            <tbody id="viewTable">
-                <tr><td colspan="2">Đang tải dữ liệu...</td></tr>
-            </tbody>
-        </table>
+    <div class="container">
+        <h1 style="text-align: center; margin-top: 0;">🏆 KẾT QUẢ QUAY SỐ HÔM NAY</h1>
+        <h3 style="text-align: center; color: var(--tet-red); margin-bottom: 25px;">🧧 Quay Số May Mắn Chúc Mừng Năm Mới nhà Gioan 🧧</h3>
+        
+        <div class="check-box">
+            <input type="text" id="userTicket" maxlength="4" placeholder="Nhập số vé (VD: 2222)...">
+            <button id="btnCheck">DÒ SỐ</button>
+        </div>
+
+        <div id="checkMessage" style="text-align:center; font-weight:bold; margin-bottom:10px; min-height: 25px;"></div>
+        <div id="luckyWish" style="text-align:center; font-style:italic; color:var(--tet-gold); margin-bottom:20px;"></div>
+
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr><th>Giải</th><th>Số Trúng Thưởng</th></tr>
+                </thead>
+                <tbody id="viewTable">
+                    <tr><td colspan="2">Đang tải kết quả...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h2>📌 LƯU Ý NHẬN THƯỞNG</h2>
+        <div style="font-size: 0.85rem; line-height: 1.5;">
+            <p>🕒 <b>Thời hạn:</b> 10 ngày kể từ ngày mở thưởng.</p>
+            <p>📋 <b>Điều kiện:</b> Số vé trùng khớp hoàn toàn với kết quả BTC.</p>
+            <p>🎫 <b>Thủ tục:</b> Mang theo thân vé gốc để đối chiếu khi nhận quà.</p>
+            <hr style="border: 0.5px dashed var(--tet-gold); margin: 15px 0;">
+            <img src="https://nguyenngocdang00.github.io/somaymannhagioan/soxonhagioan/tao-vong-quay-may-man-2.png" style="width:100%; border-radius:8px;" alt="Banner Tết">
+        </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const encodedURL = "aHR0cHM6Ly9zb3hvbmhhZ2lvYW4tZGVmYXVsdC1ydGRiLmFzaWEtc291dGhlYXN0MS5maXJlYmFzZWRhdGFiYXNlLmFwcA==";
     const firebaseConfig = { databaseURL: atob(encodedURL) };
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // --- LỜI CHÚC TẾT NGẪU NHIÊN ---
-    const tetholidayWishes = [
-        "🧧 Vạn sự như ý - Tỉ sự như mơ!",
-        "🧧 Phát tài phát lộc - Tiền vô xồng xộc!",
-        "🧧 Sức khỏe dồi dào - Hạnh phúc dâng trào!",
-        "🧧 Năm mới thắng lợi mới, niềm vui mới!",
-        "🧧 Công thành danh toại - Trẻ mãi không già!",
-        "🧧 Gia đình bình an - Hạnh phúc nồng nàn!",
-        "🧧 Lộc đầy túi, tim đầy tình, gia đình hạnh phúc!"
-    ];
+    const wishes = ["Chúc mừng năm mới, vạn sự như ý!", "Tấn tài tấn lộc, công thành danh toại!", "Sức khỏe dồi dào, gia đình hạnh phúc!", "Năm mới thắng lợi mới!"];
 
-    function showRandomWish() {
-        const wishElem = document.getElementById('luckyWish');
-        const randomWish = tetholidayWishes[Math.floor(Math.random() * tetholidayWishes.length)];
-        wishElem.innerText = randomWish;
-    }
-
-    // --- CHẾ ĐỘ TỐI (DARK MODE) ---
     window.toggleTheme = function() {
         const body = document.body;
-        const btn = document.querySelector('.theme-switch');
-        if (body.getAttribute('data-theme') === 'light') {
-            body.setAttribute('data-theme', 'dark');
-            btn.innerText = "☀️ CHẾ ĐỘ SÁNG";
-            localStorage.setItem('theme', 'dark');
-        } else {
-            body.setAttribute('data-theme', 'light');
-            btn.innerText = "🌙 CHẾ ĐỘ TỐI";
-            localStorage.setItem('theme', 'light');
-        }
+        const current = body.getAttribute('data-theme');
+        body.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
     }
-    // Khôi phục theme đã lưu
-    if (localStorage.getItem('theme') === 'dark') toggleTheme();
 
-    // --- LOGIC FIREWORKS ---
     function launchFireworks() {
-        var end = Date.now() + (3 * 1000);
+        var duration = 4 * 1000;
+        var end = Date.now() + duration;
         (function frame() {
-            confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ff0000', '#ffd700'] });
-            confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ff0000', '#ffd700'] });
+            confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ff0000', '#ffd700'] });
+            confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ff0000', '#ffd700'] });
             if (Date.now() < end) requestAnimationFrame(frame);
         }());
     }
-
-    // --- FIREBASE DATA ---
-    const visitRef = ref(db, 'visitCount_viewKQ');
-    onValue(visitRef, (s) => { if(s.exists()) document.getElementById('visit-count').innerText = s.val().toLocaleString(); });
 
     const config = [
         { key: 'db', name: 'Giải Đặc Biệt' }, { key: 'g1', name: 'Giải Nhất' },
@@ -237,18 +214,19 @@
         config.forEach(p => {
             let res = data[p.key];
             let nums = Array.isArray(res) ? res.filter(n => n).join(' - ') : (res || '---');
-            const isDB = p.key === 'db' ? 'db-highlight' : '';
-            tbody.innerHTML += `<tr><td class="prize-name">${p.name}</td><td style="font-weight:bold" class="${isDB}">${nums}</td></tr>`;
+            let prizeClass = p.key === 'db' ? 'db-highlight' : 'prize-numbers-bold';
+            
+            tbody.innerHTML += `<tr><td style="font-weight:bold; color:var(--tet-red); background: rgba(211,47,47,0.05)">${p.name}</td><td class="${prizeClass}">${nums}</td></tr>`;
         });
     });
 
-    // --- DÒ SỐ ---
     window.checkWinner = function() {
         const ticket = document.getElementById('userTicket').value.trim();
         const msg = document.getElementById('checkMessage');
+        const wishBox = document.getElementById('luckyWish');
         if (!ticket) return;
 
-        showRandomWish(); // Hiển thị câu chúc mỗi lần dò
+        wishBox.innerText = "🧧 " + wishes[Math.floor(Math.random() * wishes.length)];
 
         let won = null;
         for (const p of config) {
@@ -260,16 +238,17 @@
         }
 
         if (won) {
-            msg.innerHTML = `<span style="color: #4caf50">🎉 TRÚNG RỒI! Bạn trúng ${won}! 🧧</span>`;
+            msg.innerHTML = `<span style="color: #2e7d32; font-size: 1.2rem;">🎉 Tuyệt vời! Bạn trúng ${won}! 🧧</span>`;
             document.getElementById('winSound').play().catch(()=>{});
             launchFireworks();
         } else {
-            msg.innerHTML = `<span style="color: var(--tet-red)">😢 Tiếc quá, chưa trúng rồi!</span>`;
+            msg.innerHTML = `<span style="color: var(--tet-red)">😢 Chúc gia đình may mắn lần sau!</span>`;
         }
     };
 
-    document.getElementById('userTicket').addEventListener('keypress', (e) => { if(e.key==='Enter') window.checkWinner(); });
-    document.getElementById('btnCheck').addEventListener('click', window.checkWinner);
+    document.getElementById('btnCheck').onclick = window.checkWinner;
+    document.getElementById('userTicket').onkeypress = (e) => { if(e.key === 'Enter') window.checkWinner(); };
+    onValue(ref(db, 'visitCount_viewKQ'), (s) => { if(s.exists()) document.getElementById('visit-count').innerText = s.val().toLocaleString(); });
 </script>
 </body>
 </html>
