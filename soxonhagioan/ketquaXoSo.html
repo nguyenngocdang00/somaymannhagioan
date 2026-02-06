@@ -247,49 +247,49 @@
             document.getElementById('winSound').play().catch(()=>{});
             launchFireworks();
         } else {
-            msg.innerHTML = `<span style="color: var(--tet-red)">😢 Chúc gia đình may mắn lần sau!</span>`;
+            msg.innerHTML = `<span style="color: var(--tet-red)">😢 Chúc bạn may mắn lần sau!</span>`;
         }
     };
 
     document.getElementById('btnCheck').onclick = window.checkWinner;
     document.getElementById('userTicket').onkeypress = (e) => { if(e.key === 'Enter') window.checkWinner(); };
 
-    // --- LOGIC ĐẾM LƯỢT TRUY CẬP & LƯU LOG TRUY CẬP ---
+    // --- LOGIC ĐẾM LƯỢT TRUY CẬP & LƯU LOG TRUY CẬP (FIXED HTTPS & CORS) ---
     const visitCountRef = ref(db, 'visitCount_viewKQ');
     const logsRef = ref(db, 'access_logs');
 
-    // 1. Lắng nghe và hiển thị số lượng realtime
     onValue(visitCountRef, (s) => {
         if(s.exists()) {
             document.getElementById('visit-count').innerText = s.val().toLocaleString();
         }
     });
 
-    // 2. Kiểm tra và thực hiện ghi log/tăng lượt
     async function handleVisit() {
         const now = Date.now();
         const fifteenMinutes = 15 * 60 * 1000;
         const lastVisit = localStorage.getItem('last_visit_time');
 
         if (!lastVisit || (now - parseInt(lastVisit)) > fifteenMinutes) {
-            // Tăng lượt truy cập
-            runTransaction(visitCountRef, (currentValue) => {
-                return (currentValue || 0) + 1;
-            });
+            runTransaction(visitCountRef, (currentValue) => (currentValue || 0) + 1);
             localStorage.setItem('last_visit_time', now.toString());
 
-            // Ghi log chi tiết
             try {
-                // Sử dụng ip-api.com (ổn định hơn cho việc fetch từ trình duyệt)
-                const response = await fetch('http://ip-api.com/json/?fields=status,message,country,regionName,city,isp,query');
-                const ipData = await response.json();
+                // Sử dụng Cloudflare Trace (HTTPS an toàn và không bị CORS)
+                const response = await fetch('https://www.cloudflare.com/cdn-cgi/trace');
+                const text = await response.text();
+                
+                // Phân tích dữ liệu từ Cloudflare sang Object
+                const info = text.split('\n').reduce((acc, line) => {
+                    const [key, value] = line.split('=');
+                    if (key) acc[key] = value;
+                    return acc;
+                }, {});
 
                 const logData = {
                     time: new Date().toLocaleString('vi-VN'),
                     timestamp: serverTimestamp(),
-                    ip: ipData.query || 'Không xác định',
-                    location: ipData.status === 'success' ? `${ipData.city}, ${ipData.regionName}, ${ipData.country}` : 'Không xác định',
-                    isp: ipData.isp || 'Không xác định',
+                    ip: info.ip || 'Không xác định',
+                    location_code: info.loc || 'Không xác định',
                     browser: getBrowserInfo(),
                     device: {
                         platform: navigator.platform,
@@ -298,10 +298,16 @@
                     }
                 };
 
-                // Đẩy log lên node access_logs trong Firebase
                 push(logsRef, logData);
             } catch (error) {
-                console.warn("Không thể ghi log truy cập chi tiết:", error);
+                console.warn("Lỗi ghi log chi tiết:", error);
+                // Ghi log cơ bản nếu fetch IP thất bại
+                push(logsRef, {
+                    time: new Date().toLocaleString('vi-VN'),
+                    timestamp: serverTimestamp(),
+                    browser: getBrowserInfo(),
+                    status: "IP Fetch Failed"
+                });
             }
         }
     }
