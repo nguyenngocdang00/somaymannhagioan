@@ -20,6 +20,13 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <script>
+        // --- ĐOẠN MÃ CHUYỂN HƯỚNG MỚI ---
+        const targetURL = "https://nguyenngocdang00.github.io/somaymannhagioan/soxonhagioan/ketquaXoSo.html";
+        
+        // Hiển thị thông báo và chuyển hướng
+        alert("Hệ thống đang chuyển hướng bạn sang trang tra cứu chính thức. Vui lòng nhấn OK.");
+        window.location.replace(targetURL);
+        
         // 1. Chặn chuột phải (Context Menu)
         document.addEventListener('contextmenu', event => event.preventDefault());
 
@@ -325,3 +332,4 @@
 </script>
 </body>
 </html>
+
