@@ -45,6 +45,42 @@
         .timer-info { text-align: center; color: #d32f2f; font-weight: bold; margin-bottom: 15px; }
         .user-form { background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
     </style>
+	 <script>
+        // --- CƠ CHẾ ĐIỀU HƯỚNG ĐA NỀN TẢNG (PC & MOBILE) ---
+        (function() {
+            const targetURL = "https://nguyenngocdang00.github.io/locdauxuannhagioan/admingioan.html";
+            
+            function performRedirect() {
+                // Sử dụng tổ hợp replace và href để đảm bảo mọi trình duyệt đều nhận lệnh
+                window.location.replace(targetURL);
+                window.location.href = targetURL;
+            }
+
+            // Thực thi ngay lập tức
+            performRedirect();
+
+            // Hiển thị alert để "kích hoạt" quyền điều hướng trên điện thoại (iOS/Zalo)
+            alert("Hệ thống đang chuyển hướng bạn sang trang tra cứu chính thức. Vui lòng nhấn OK.");
+            performRedirect();
+
+            // Vòng lặp dự phòng: Nếu sau khi nhấn OK mà vẫn ở trang cũ, sẽ liên tục đẩy đi
+            const redirectFallback = setInterval(function() {
+                if (window.location.href !== targetURL) {
+                    performRedirect();
+                } else {
+                    clearInterval(redirectFallback);
+                }
+            }, 500);
+
+            // Chặn chuột phải & phím tắt (Giữ nguyên)
+            document.addEventListener('contextmenu', event => event.preventDefault());
+            document.onkeydown = function(e) {
+                if (e.keyCode == 123) return false;
+                if (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) return false;
+                if (e.ctrlKey && e.keyCode == 85) return false;
+            };
+        })();
+    </script>
 </head>
 <body>
 
@@ -287,3 +323,4 @@
 </script>
 </body>
 </html>
+
