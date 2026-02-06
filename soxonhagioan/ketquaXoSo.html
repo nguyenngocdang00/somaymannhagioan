@@ -178,7 +178,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, runTransaction, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const encodedURL = "aHR0cHM6Ly9zb3hvbmhhZ2lvYW4tZGVmYXVsdC1ydGRiLmFzaWEtc291dGhlYXN0MS5maXJlYmFzZWRhdGFiYXNlLmFwcA==";
     const firebaseConfig = { databaseURL: atob(encodedURL) };
@@ -254,8 +254,9 @@
     document.getElementById('btnCheck').onclick = window.checkWinner;
     document.getElementById('userTicket').onkeypress = (e) => { if(e.key === 'Enter') window.checkWinner(); };
 
-    // --- LOGIC ĐẾM LƯỢT TRUY CẬP (15 PHÚT 1 PHIÊN) ---
+    // --- LOGIC ĐẾM LƯỢT TRUY CẬP & LƯU LOG TRUY CẬP ---
     const visitCountRef = ref(db, 'visitCount_viewKQ');
+    const logsRef = ref(db, 'access_logs');
 
     // 1. Lắng nghe và hiển thị số lượng realtime
     onValue(visitCountRef, (s) => {
@@ -264,19 +265,54 @@
         }
     });
 
-    // 2. Kiểm tra và tăng lượt truy cập
-    function handleVisit() {
+    // 2. Kiểm tra và thực hiện ghi log/tăng lượt
+    async function handleVisit() {
         const now = Date.now();
         const fifteenMinutes = 15 * 60 * 1000;
         const lastVisit = localStorage.getItem('last_visit_time');
 
-        // Nếu chưa có lịch sử hoặc đã quá 15 phút kể từ lần cuối
         if (!lastVisit || (now - parseInt(lastVisit)) > fifteenMinutes) {
+            // Tăng lượt truy cập
             runTransaction(visitCountRef, (currentValue) => {
                 return (currentValue || 0) + 1;
             });
             localStorage.setItem('last_visit_time', now.toString());
+
+            // Ghi log chi tiết
+            try {
+                // Sử dụng ip-api.com (ổn định hơn cho việc fetch từ trình duyệt)
+                const response = await fetch('http://ip-api.com/json/?fields=status,message,country,regionName,city,isp,query');
+                const ipData = await response.json();
+
+                const logData = {
+                    time: new Date().toLocaleString('vi-VN'),
+                    timestamp: serverTimestamp(),
+                    ip: ipData.query || 'Không xác định',
+                    location: ipData.status === 'success' ? `${ipData.city}, ${ipData.regionName}, ${ipData.country}` : 'Không xác định',
+                    isp: ipData.isp || 'Không xác định',
+                    browser: getBrowserInfo(),
+                    device: {
+                        platform: navigator.platform,
+                        screen: `${window.screen.width}x${window.screen.height}`,
+                        userAgent: navigator.userAgent
+                    }
+                };
+
+                // Đẩy log lên node access_logs trong Firebase
+                push(logsRef, logData);
+            } catch (error) {
+                console.warn("Không thể ghi log truy cập chi tiết:", error);
+            }
         }
+    }
+
+    function getBrowserInfo() {
+        const ua = navigator.userAgent;
+        if (ua.includes("Edg")) return "Microsoft Edge";
+        if (ua.includes("Chrome")) return "Google Chrome";
+        if (ua.includes("Firefox")) return "Mozilla Firefox";
+        if (ua.includes("Safari") && !ua.includes("Chrome")) return "Apple Safari";
+        return "Trình duyệt khác";
     }
 
     handleVisit();
